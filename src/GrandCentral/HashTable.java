@@ -1,4 +1,4 @@
-/*
+package GrandCentral;/*
 * Double hashing, double indexing, and quadratic probing in this HashTable
 * Author: Cormac Dacker (cxd289)
 *  */
@@ -20,46 +20,9 @@ public class HashTable {
     private String[] values = new String[capacity];
     private String[][][] table = new String[capacity][2][maxVals];
 
-    private HashTable(){
+    public HashTable(){
         this.capacity = (1000);
         this.table = new String[capacity][2][maxVals]; // redo dec
-    }
-
-    public static void main(String[] args){
-        HashTable ht = new HashTable();
-
-        // add 10 people
-        ht.put("Cormac", "Quentin");
-        ht.put("Amulya", "Olivia");
-        ht.put("Olivia", "Marilyn");
-        ht.put("Marilyn", "Shanti");
-        ht.put("Shanti", "Mac");
-        ht.put("Mac", "Lucia");
-        ht.put("Lucia", "Joaquin");
-        ht.put("Joaquin", "Sophie");
-        ht.put("Sophie", "Zack");
-        ht.put("Zack", "Catlin");
-        ht.put("Catlin", "Yutong");
-
-        // add one person, plus many colaborators
-        ht.put("Quentin", "Olivia");
-        ht.put("Quentin", "Quentin");
-        ht.put("Quentin", "Yuton");
-        ht.put("Quentin", "Caitlin");
-        ht.put("Quentin", "Shanti");
-        ht.put("Quentin", "Joaquin");
-        ht.put("Quentin", "Lucia");
-        ht.put("Quentin", "Marilyn");
-        ht.put("Quentin", "Mac");
-        ht.put("Quentin", "Zack");
-        ht.put("Quentin", "Sophie");
-        ht.put("Quentin", "Cormac");
-        ht.put("Quentin", "Cormac"); // dublicate check
-
-
-
-        System.out.print(ht.toString());
-
     }
 
     @Override
@@ -175,6 +138,24 @@ public class HashTable {
         System.out.print("Rehash complete\n");
     }
 
+    // takes a list of authors and puts them in with the differece as the value
+    private void putList(String[] authorList){
+        if (authorList != null){ //null check
+            for (String author: authorList) { //put each author in as key
+                int len = author.split("\\s+").length;
+                if(len <= 5 && len > 1) { //cut authors with names of 1 or +5 words
+                    for (int i = 0; i <= authorList.length; i++) { // coworkers as vals
+                        if (authorList[i] == author) { // if index on the author
+                            continue;
+                        } else {
+                            this.put(author, authorList[i]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     // put an item in the hash table
     private void put(String key, String value) {
         if (this.needsResizing(this.keys)) {
