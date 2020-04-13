@@ -19,7 +19,10 @@ public class Main {
         /** path of xml file **/
 		String fp = "/Users/cdacker/Downloads/Dblp/dblp.xml";
 
-		XMLParser2.fillAuthorTable(fp);
+		HashTable table = new HashTable();
+
+		table = XMLParser2.fillAuthorTable(fp);
+		System.out.print(table.toString());
 
 		/** Step 2 :Generate classes of entities to "entityTypes" package in src **/
 		// Note : You have to refresh for the classes to be seen in your directory

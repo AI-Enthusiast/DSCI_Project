@@ -39,8 +39,13 @@ public class XMLParser2 {
 				public void endElement(String uri, String localName, String qName) throws SAXException {
 					if (parentNode.element.equalsIgnoreCase("article")) {
 						List<String>authorsOfArticle = parentNode.children;
-						System.out.print(authorsOfArticle.toString()+"\n");
-						//authorTable.put(authorsOfArticle);
+						//System.out.print(authorsOfArticle.toString()+"\n");
+						try {
+							authorTable.putList(authorsOfArticle.toArray(String[]::new));
+						} catch (OutOfMemoryError e){
+							return;
+						};
+
 					}
 					else if (parentNode.element.equalsIgnoreCase("author")) {
 						if (parentNode.prev.element.equalsIgnoreCase("article")) {

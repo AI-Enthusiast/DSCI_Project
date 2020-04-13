@@ -2,11 +2,12 @@ package GrandCentral;/*
 * Double hashing, double indexing, and quadratic probing in this HashTable
 * Author: Cormac Dacker (cxd289)
 *  */
+import javafx.util.Pair;
+
 import java.io.*;
 import java.util.*;
-
 public class HashTable {
-    private int capacity =10;
+    private int capacity =100000;
     private int seed = 42;
     private int size = 0;
     private int resize = 2;
@@ -16,25 +17,30 @@ public class HashTable {
     private int keyIndex = 0;
     private int valueIndex = 1;
     private Random rand = new Random(seed);
-    private String[] keys = new String[capacity];
-    private String[] values = new String[capacity];
-    private String[][][] table = new String[capacity][2][maxVals];
+    private ArrayList<String> keys = new ArrayList<>();
+    private ArrayList<String> values = new ArrayList<>();
+    //private String[][][] table = new String[capacity][2][maxVals];
+    private ArrayList<Pair<String, ArrayList<String>>> table = new ArrayList<>();
 
     public HashTable(){
-        this.capacity = (1000);
-        this.table = new String[capacity][2][maxVals]; // redo dec
+        buildTable();
     }
 
     @Override
     public String toString() {
+        int stp = capacity;
+        if (size > 100){stp = 100;}
         StringBuilder out = new StringBuilder(new String(""));
-        for (int i = 0; i < capacity -1; i++){
-            if (this.table[i][keyIndex][keyIndex] != null){ // if index not null
-                out.append("{").append(this.table[i][keyIndex][keyIndex]).append("\n\t")
-                        .append(Arrays.toString(this.table[i][valueIndex])).append("}\n");
-            }
+        for (int i = 0; i < stp -1; i++){
+            out.append(this.table.get(i).toString()).append("\n");
         }
         return out.toString();
+    }
+
+    private void buildTable(){
+        for(int i = 0; i <capacity; i++) {
+            this.table.add(new Pair<String, ArrayList<String>>("",new ArrayList<String>()));
+        }
     }
 
     // the core of the hash function
@@ -76,7 +82,8 @@ public class HashTable {
 
         while (i <= limit){
             newPos = this.quadProbe(key,i);
-            if (this.table[newPos][keyIndex] != null){
+            if(table.get(i) != null)
+            if (this.table.get(newPos).getKey() != null){ // if key at pos is not null
                 posFound = newPos;
                 break;
             } else {
@@ -105,18 +112,18 @@ public class HashTable {
             }
         }
         for (int i : ls) {
-            String[] entry = this.table[i][keyIndex];
-            if (entry[keyIndex].equals(key)) {
+            String entry = this.table.get(i).getKey();
+            if (entry.equals(key)) {
                 return i;
             }
         }
         return -1;
     }
 
-    private String[] get(String key){
+    private ArrayList<String> get(String key){
         int pos = this.search(key);
         if (pos != -1){
-            return this.table[pos][keyIndex];
+            return this.table.get(pos).getValue();
         } else {
             return null;
         }
@@ -126,25 +133,22 @@ public class HashTable {
     private void rehash(){
         this.capacity *= this.resize;
         this.rehashed ++;
-        this.table = new String[this.capacity][2][this.maxVals];
-        String[] vals = this.values.clone();
-        String[] kys = this.keys.clone();
-        this.keys = new String[this.capacity];
-        this.values = new String[this.capacity];
+        this.table = new ArrayList<>(this.capacity);
+        buildTable();
         this.size= 0;
-        for(int i =0; i<vals.length - 1 && kys[i] != null; i ++){
-            this.put(kys[i],vals[i]);
+        for(int i =0; i<this.values.size()  && this.keys.get(i) != null; i ++){
+            this.put(this.keys.get(i),this.values.get(i));
         }
         System.out.print("Rehash complete\n");
     }
 
     // takes a list of authors and puts them in with the differece as the value
-    private void putList(String[] authorList){
+    public void putList(String[] authorList){
         if (authorList != null){ //null check
             for (String author: authorList) { //put each author in as key
                 int len = author.split("\\s+").length;
                 if(len <= 5 && len > 1) { //cut authors with names of 1 or +5 words
-                    for (int i = 0; i <= authorList.length; i++) { // coworkers as vals
+                    for (int i = 0; i < authorList.length - 1; i++) { // coworkers as vals
                         if (authorList[i] == author) { // if index on the author
                             continue;
                         } else {
@@ -158,46 +162,45 @@ public class HashTable {
     
     // put an item in the hash table
     private void put(String key, String value) {
-        if (this.needsResizing(this.keys)) {
-            String[] k = this.keys.clone();
-            String[] v = this.values.clone();
-            this.keys = new String[k.length * 2];
-            System.arraycopy(k, 0, this.keys, 0, k.length - 1);;
-            this.values = new String[v.length * 2];
-            System.arraycopy(v, 0, this.values, 0, v.length - 1);;
+        if(this.size % 1000 == 0){
+            System.out.print(this.size);
+            System.out.print('\n');
         }
         int location = this.h1(key);
         if (this.cutoff()) { // confirm there is room in table
             this.rehash();
             this.put(key, value);
-        } else if (this.table[location][this.keyIndex][this.keyIndex] == null) { // location is empty
-            this.table[location][this.keyIndex][this.keyIndex] = key;
-            int valLoc = getEmptySpot(this.table[location][this.valueIndex]);
-            this.table[location][this.valueIndex][valLoc] = value;
-            this.values[this.size] = value; // this is prob wrong
-            this.keys[this.size] = key;
+        } else if (this.table.get(location) == null) { // location is empty
+            ArrayList<String> v = new ArrayList<String>();
+            v.add(value);
+            Pair<String, ArrayList<String>> p = new Pair<String, ArrayList<String>>(key, v);
+            table.set(location,p);
+
+            maintencence(key, value);
             this.size++;
-        } else if (this.table[location][this.keyIndex][this.keyIndex].equals(key)) {
-            if(getSpotOf(this.table[location][valueIndex],value)!= -1){ // ensures no duplicate values
+
+
+
+        } else if (this.table.get(location).getKey().equals(key)) {
+            if(getSpotOf(this.table.get(location).getValue(),value)!= -1){ // ensures no duplicate values
                 return;
             }
-            if (needsResizing(this.table[location][this.valueIndex])){
-                this.table =  resize(this.table).clone(); // just value range, no rehash needed
-            }
-            int valLoc = getEmptySpot(this.table[location][this.valueIndex]);
-            this.table[location][this.valueIndex][valLoc] = value;
-            this.keys[this.size] = key;
-            this.values[this.size] = value; // this is prob wrong
-            this.size++;
+
+            this.table.get(location).getValue().add(value);
+            maintencence(key, value);
+
         } else { // there needs to be a second try (aka double hash it, baby!)
             int pos = this.doubleHashing(key);
             if (pos != -1) { // double hashing worked!
-                int valLoc = getEmptySpot(this.table[pos][this.valueIndex]);
-                this.table[pos][keyIndex][keyIndex] = key;
-                this.table[pos][this.valueIndex][valLoc] = value; // add key? TEMP
-                this.values[this.size] = value;
-                this.keys[this.size] = key;
+                ArrayList<String> v = new ArrayList<String>();
+                v.add(value);
+                Pair<String, ArrayList<String>> p = new Pair<String, ArrayList<String>>(key, v);
+                table.set(pos,p);
+
+                maintencence(key, value);
                 this.size++;
+
+
             } else { //failsafe
                 this.rehash();
                 this.put(key, value);
@@ -206,41 +209,27 @@ public class HashTable {
 
     }
 
-    private boolean needsResizing(String[] ar){
-        for(int i = 0; i < ar.length -1; i++){
-            if (i > ((maxVals-1) * .8) && ar[i] != null){
-
-                return true;
-            }
-        }
-        return false;
+    private void maintencence(String k, String v){
+        this.values.add(v);
+        this.keys.add(k);
     }
 
-    // increase size of table to store more values (not keys)
-    private String[][][] resize(String[][][] ar){
-        this.maxVals *= this.resize;
-        String[][][] out = new String[this.capacity][2][this.maxVals];
-        if (ar.length - 1 >= 0) System.arraycopy(ar, 0, out, 0, ar.length - 1);
-        System.out.print("Resizing complete\n");
-        return out;
-    }
+//    private int getEmptySpot(ArrayList<String> ar){
+//        int i = 0;
+//        while (i < ar.length -1){
+//            if (ar.get(i) == null){
+//                return i;
+//            }
+//            i++;
+//        }
+//        return i;
+//    }
 
-    private int getEmptySpot(String[] ar){
+    private int getSpotOf(ArrayList<String> ar, String search) {
         int i = 0;
-        while (i < ar.length -1){
-            if (ar[i] == null){
-                return i;
-            }
-            i++;
-        }
-        return i;
-    }
-
-    private int getSpotOf(String[] ar, String search) {
-        int i = 0;
-        while (i < ar.length - 1) {
-            if(ar[i] != null){
-                if (ar[i].equals(search)) {
+        while (i < ar.size() - 1) {
+            if(ar.get(i) != null){
+                if (ar.get(i).equals(search)) {
                     return i;
                 }
             } else{
@@ -251,47 +240,47 @@ public class HashTable {
         return -1;
     }
 
-    private String[] removeVal(String[] vals, String toRemove){
-        int loc = getSpotOf(vals, toRemove);
-        if (loc == -1) {
-            return vals;
-        }
-        String[] out = new String[vals.length];
-        for (int i = 0; i < vals.length; i++) {
-            if(i != loc){
-                int pos = getEmptySpot(out);
-                out[pos] = vals[i];
-            }
-        }
-        return out;
-    }
-
-    private boolean remove(String key, String value){
-        int pos = this.search(key);
-        if (pos == -1){ // if key does not exist
-            return false;
-        }
-        if (value != null){ // if it's a val is whats removed
-            String[] vals = this.get(key);
-            this.table[pos][valueIndex] = this.removeVal(vals, value);
-            this.values = this.removeVal(this.values, value);
-            this.size--;
-        } else { // else remove the key
-            // remove vals related to the key
-//            for(int i = 0; i < this.table[pos][valueIndex].length; i++){
-//                this.table[pos][valueIndex] = new String[maxVals];
+//    private String[] removeVal(String[] vals, String toRemove){
+//        int loc = getSpotOf(vals, toRemove);
+//        if (loc == -1) {
+//            return vals;
+//        }
+//        String[] out = new String[vals.length];
+//        for (int i = 0; i < vals.length; i++) {
+//            if(i != loc){
+//                int pos = getEmptySpot(out);
+//                out[pos] = vals[i];
 //            }
-            this.table[pos][valueIndex] = new String[maxVals];
-            this.table[pos][keyIndex] = new String[2]; // IDK if this works TEMP
-            this.size --;
-            if (this.size != 0){
-                rehash();
-            }
-        }
-        return true;
-    }
-
-    private boolean has(String key){
-        return (this.search(key) != -1);
-    }
+//        }
+//        return out;
+//    }
+//
+//    private boolean remove(String key, String value){
+//        int pos = this.search(key);
+//        if (pos == -1){ // if key does not exist
+//            return false;
+//        }
+//        if (value != null){ // if it's a val is whats removed
+//            String[] vals = this.get(key);
+//            this.table[pos][valueIndex] = this.removeVal(vals, value);
+//            this.values.remove(value);
+//            this.size--;
+//        } else { // else remove the key
+//            // remove vals related to the key
+////            for(int i = 0; i < this.table[pos][valueIndex].length; i++){
+////                this.table[pos][valueIndex] = new String[maxVals];
+////            }
+//            this.table[pos][valueIndex] = new String[maxVals];
+//            this.table[pos][keyIndex] = new String[2]; // IDK if this works TEMP
+//            this.size --;
+//            if (this.size != 0){
+//                rehash();
+//            }
+//        }
+//        return true;
+//    }
+//
+//    private boolean has(String key){
+//        return (this.search(key) != -1);
+//    }
 }
