@@ -1,14 +1,8 @@
 package GrandCentral;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javafx.util.Pair;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
+import java.util.ArrayList;
 
 public class Main {
 
@@ -24,7 +18,9 @@ public class Main {
 		table = XMLParser2.fillAuthorTable(fp);
 		System.out.print(table.toString());
 		System.out.print("\n");
-		System.out.print(table.getTable().get(table.getMostValsIndex()).toString());
+		Pair<String, ArrayList<String>> root = table.getTable().get(table.getMostValsIndex());
+		System.out.print(root.toString());
+		System.out.print("\n" + root.getKey() + " has " + root.getValue().size() + " connections WOW");
 
 		/** Step 2 :Generate classes of entities to "entityTypes" package in src **/
 		// Note : You have to refresh for the classes to be seen in your directory

@@ -5,11 +5,13 @@ package GrandCentral;/*
 
 import javafx.util.Pair;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class HashTable {
-    private int capacity = 10;
+    private int capacity = 500000; //500k
     private int seed = 42;
     private int size = 0;
     private int resize = 2;
@@ -73,7 +75,7 @@ public class HashTable {
         if (this.size > 100) {
             stp = 100;
         }
-        StringBuilder out = new StringBuilder(new String(""));
+        StringBuilder out = new StringBuilder("");
         for (int i = 0; i < stp - 1; i++) {
             if (!this.table.get(i).getKey().equals("")) { //not null
                 out.append(this.table.get(i).toString()).append("\n");
@@ -95,7 +97,7 @@ public class HashTable {
         if (stp > this.capacity) {
             stp = this.capacity;
         }
-        StringBuilder out = new StringBuilder(new String(""));
+        StringBuilder out = new StringBuilder("");
         for (int i = 0; i < stp - 1; i++) {
             if (this.table.get(i) != null) {
                 out.append(this.table.get(i).toString()).append("\n");
@@ -169,7 +171,7 @@ public class HashTable {
             return -1;
         }
         ls.add(this.h1(key));
-        for (int i = 2; i < (int) ((this.capacity * 80) / 100); i++) {
+        for (int i = 2; i < ((this.capacity * 80) / 100); i++) {
             int idx = this.quadProbe(key, i);
             if (!ls.contains(idx)) {
                 ls.add(idx);
@@ -195,7 +197,7 @@ public class HashTable {
 
     // increase the size of the table
     private void rehash() {
-        System.out.print("Rehash Start\n");
+        //System.out.print("Rehash Start\n");
 
         this.capacity *= this.resize;
         this.table = new ArrayList<>(this.capacity);
