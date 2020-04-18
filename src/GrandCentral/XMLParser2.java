@@ -42,7 +42,7 @@ public class XMLParser2 {
 						//System.out.print(authorsOfArticle.toString()+"\n");
 						try {
 							authorTable.putList(authorsOfArticle.toArray(String[]::new));
-						} catch (OutOfMemoryError e){
+						} catch (Exception OutOfMemoryError){
 							return;
 						};
 

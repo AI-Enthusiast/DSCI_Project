@@ -23,6 +23,8 @@ public class Main {
 
 		table = XMLParser2.fillAuthorTable(fp);
 		System.out.print(table.toString());
+		System.out.print("\n");
+		System.out.print(table.getTable().get(table.getMostValsIndex()).toString());
 
 		/** Step 2 :Generate classes of entities to "entityTypes" package in src **/
 		// Note : You have to refresh for the classes to be seen in your directory
